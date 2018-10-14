@@ -15,7 +15,7 @@ class DisplayTable extends Frame
 
    DisplayTable(String s)
    {  super(s);
-      setSize(700,500);
+      setSize(750,600);
       setLayout(new FlowLayout());
       addWindowListener(this);
       // Amount/Principal field
@@ -33,10 +33,9 @@ class DisplayTable extends Frame
       add(RatePrompt);
       rate = new TextField(8);
       add(rate);
-
       rate.addActionListener(this);
 
-      table = new TextArea(27,55);
+      table = new TextArea(30,70);
       table.setFont(new Font("Monospaced", Font.PLAIN, 12 ));
       add(table);
       table.setEditable(false);
@@ -57,39 +56,36 @@ class DisplayTable extends Frame
    }
 
    public void makeTable()
-   {  float a = Float.parseFloat(amount.getText());
+   {  double a = Double.parseDouble(amount.getText());
       int n = 12 * Integer.parseInt(noyears.getText());
-      float r = Float.parseFloat(rate.getText()) / 1200.F;
+      double r = Double.parseDouble(rate.getText()) / 1200.;
 
-      float interest = 0.F;
-
-      float f = (float) Math.pow((1.F + r), n);
-      float pmt = (a * f * r) / (f - 1.F);
-
-      float[][] at = new float[n][4];
-      for (int i = 0; i < n; i++)
-      {  at[i][0] = a;
-         at[i][1] = r*at[i][0];
-         at[i][2] = pmt - at[i][1];
-         at[i][3] = at[i][0] - at[i][2];
-         a = at[i][3];
-         interest += at[i][1];
-      }
+      double f = Math.pow((1. + r), n);
+      double pmt = (a * f * r) / (f - 1.);   // monthly payment
+      double total_interest = 0.F;
 
       NumberFormat currency = NumberFormat.getCurrencyInstance();
-
-      table.append(" monthly payment = " + currency.format(pmt) + "\n");
-      for (int i = 0; i < n; i++)
-      {  StringBuffer row = new StringBuffer();
-         for (int j = 0; j < 4; j++)
-         {  // String field = String.format("%11.2f  ", at[i][j]);
-            String field = String.format("%13s", currency.format(at[i][j]));
-            row.append(field);
-         }
-         table.append(row.toString() + "\n");
+      String header = String.format("%5s%13s%11s%11s%11s%13s\n",
+         "MONTH", "START   ", "PMT   ", "P   ", "I   ", "END   ");
+      table.append(header);
+      for (int month = 1; month <= n; month++)
+      {  // calculate row values
+         double start = a;
+         double i = r * a;
+         double p = pmt - i;
+         a = a - p;
+         total_interest += i;
+         // write formatted values to row buffer
+         StringBuffer row = new StringBuffer();
+         row.append(String.format("%5s", Integer.toString(month)));
+         row.append(String.format("%13s", currency.format(start)));
+         row.append(String.format("%11s", currency.format(pmt)));
+         row.append(String.format("%11s", currency.format(p)));
+         row.append(String.format("%11s", currency.format(i)));
+         row.append(String.format("%13s\n", currency.format(a)));
+         table.append(row.toString()); // write to table
       }
-      table.append(" total interest paid = " + currency.format(interest)
-            + "\n");
+      table.append("total interest paid = " + currency.format(total_interest));
    }
 }
 
